@@ -91,6 +91,7 @@ let iPlus = Math.floor(Math.random() * 5 + 5);
 let sculptureGroup = new THREE.Group();
 let wireframeMode = false;
 let regenerateFlag = false;
+let lightDarkThreshold = 0; // -1 = more dark, 0 = balanced, 1 = more light
 
 // Store merged geometries for export
 let lightMergedBrush = null;
@@ -113,13 +114,19 @@ const darkMaterial = new THREE.MeshStandardMaterial({
 
 // Create a single cube at position with height variation
 function createCube(x, y, z, size, height, isDark = false) {
-  const boxGeo = new THREE.BoxGeometry(size, size, height);
+  // Ensure minimum valid dimensions to avoid degenerate geometry
+  const safeSize = Math.max(size, 0.01);
+  const safeHeight = Math.max(height, 0.01);
+  
+  const boxGeo = new THREE.BoxGeometry(safeSize, safeSize, safeHeight);
+  boxGeo.computeVertexNormals();
+  
   const material = isDark ? darkMaterial : lightMaterial;
   const brush = new Brush(boxGeo, material);
   brush.position.set(x, y, z);
   brush.castShadow = true;
   brush.receiveShadow = true;
-  brush.updateMatrixWorld();
+  brush.updateMatrixWorld(true);
   return brush;
 }
 
@@ -141,7 +148,8 @@ function drawCubeFrame(side, size) {
         
         let zPos, height, isDark;
         
-        if (noiseVal > 0) {
+        // Use lightDarkThreshold to control balance of light vs dark pieces
+        if (noiseVal > lightDarkThreshold) {
           // Light colored, taller extrusions
           zPos = size / 30 * 15 * nF;
           height = size / 30 * 30 * nF;
@@ -199,47 +207,84 @@ function buildSculpture() {
   
   console.log(`Merging ${allLightCubes.length} light cubes and ${allDarkCubes.length} dark cubes...`);
   
-  // Merge all light cubes using CSG ADDITION
+  // Merge all light cubes using CSG ADDITION with error handling
   if (allLightCubes.length > 0) {
     lightMergedBrush = allLightCubes[0];
     for (let i = 1; i < allLightCubes.length; i++) {
-      lightMergedBrush = csgEvaluator.evaluate(lightMergedBrush, allLightCubes[i], ADDITION);
-      allLightCubes[i].geometry.dispose(); // Clean up
+      try {
+        const result = csgEvaluator.evaluate(lightMergedBrush, allLightCubes[i], ADDITION);
+        if (result && result.geometry && result.geometry.attributes.position) {
+          result.updateMatrixWorld(true);
+          lightMergedBrush = result;
+        }
+        allLightCubes[i].geometry.dispose(); // Clean up
+      } catch (error) {
+        console.warn(`Skipping light cube ${i} due to CSG error:`, error.message);
+        allLightCubes[i].geometry.dispose();
+      }
     }
   }
   
-  // Merge all dark cubes using CSG ADDITION
+  // Merge all dark cubes using CSG ADDITION with error handling
   if (allDarkCubes.length > 0) {
     darkMergedBrush = allDarkCubes[0];
     for (let i = 1; i < allDarkCubes.length; i++) {
-      darkMergedBrush = csgEvaluator.evaluate(darkMergedBrush, allDarkCubes[i], ADDITION);
-      allDarkCubes[i].geometry.dispose(); // Clean up
+      try {
+        const result = csgEvaluator.evaluate(darkMergedBrush, allDarkCubes[i], ADDITION);
+        if (result && result.geometry && result.geometry.attributes.position) {
+          result.updateMatrixWorld(true);
+          darkMergedBrush = result;
+        }
+        allDarkCubes[i].geometry.dispose(); // Clean up
+      } catch (error) {
+        console.warn(`Skipping dark cube ${i} due to CSG error:`, error.message);
+        allDarkCubes[i].geometry.dispose();
+      }
     }
   }
   
   // Create base plate
   const baseGeo = new THREE.BoxGeometry(300, 300, 1);
+  baseGeo.computeVertexNormals();
   const baseBrush = new Brush(baseGeo, new THREE.MeshStandardMaterial({
     color: 0x000000,
     metalness: 0.3,
     roughness: 0.7
   }));
-  baseBrush.updateMatrixWorld();
+  baseBrush.updateMatrixWorld(true);
   
-  // Add base plate to dark pieces using CSG ADDITION
+  // Add base plate to dark pieces using CSG ADDITION with error handling
   if (darkMergedBrush) {
     console.log('Adding base plate to dark pieces...');
-    darkMergedBrush = csgEvaluator.evaluate(darkMergedBrush, baseBrush, ADDITION);
+    try {
+      const result = csgEvaluator.evaluate(darkMergedBrush, baseBrush, ADDITION);
+      if (result && result.geometry && result.geometry.attributes.position) {
+        result.updateMatrixWorld(true);
+        darkMergedBrush = result;
+      }
+    } catch (error) {
+      console.warn('Error adding base plate, using base only:', error.message);
+      darkMergedBrush = baseBrush;
+    }
   } else {
     // If no dark pieces, just use the base
     darkMergedBrush = baseBrush;
   }
   
-  // SUBTRACT dark (including base) from light to create interlocking geometry
+  // SUBTRACT dark (including base) from light to create interlocking geometry with error handling
   if (lightMergedBrush && darkMergedBrush) {
     console.log('Creating interlocking geometry - subtracting dark from light...');
-    const lightBeforeSubtraction = lightMergedBrush;
-    lightMergedBrush = csgEvaluator.evaluate(lightBeforeSubtraction, darkMergedBrush, SUBTRACTION);
+    try {
+      const result = csgEvaluator.evaluate(lightMergedBrush, darkMergedBrush, SUBTRACTION);
+      if (result && result.geometry && result.geometry.attributes.position) {
+        result.updateMatrixWorld(true);
+        lightMergedBrush = result;
+      } else {
+        console.warn('Subtraction resulted in invalid geometry, keeping original light pieces');
+      }
+    } catch (error) {
+      console.warn('Error during subtraction, keeping original light pieces:', error.message);
+    }
   }
   
   // Add to scene
@@ -297,6 +342,25 @@ document.getElementById('rotatePuzzle').addEventListener('click', () => {
   isRotating = !isRotating;
   controls.autoRotate = isRotating;
   document.getElementById('rotatePuzzle').textContent = isRotating ? 'Pause Rotation' : 'Resume Rotation';
+});
+
+// Light/Dark balance slider
+const balanceSlider = document.getElementById('balanceSlider');
+const balanceValue = document.getElementById('balanceValue');
+balanceSlider.addEventListener('input', (e) => {
+  lightDarkThreshold = parseFloat(e.target.value);
+  // Update display text
+  if (lightDarkThreshold < -0.3) {
+    balanceValue.textContent = 'More Dark';
+  } else if (lightDarkThreshold > 0.3) {
+    balanceValue.textContent = 'More Light';
+  } else {
+    balanceValue.textContent = 'Balanced';
+  }
+});
+
+document.getElementById('applyBalance').addEventListener('click', () => {
+  buildSculpture();
 });
 
 // Download buttons
