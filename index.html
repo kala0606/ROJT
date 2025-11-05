@@ -1,145 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Return of Jewel Their - ROJT</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            font-family: 'Courier New', monospace;
-        }
-        
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-        
-        #info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        #controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            font-size: 14px;
-        }
-        
-        .control-group {
-            margin: 10px 0;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #aaa;
-        }
-        
-        input[type="range"] {
-            width: 200px;
-        }
-        
-        button {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid #fff;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px 5px 5px 0;
-            transition: all 0.3s;
-        }
-        
-        button:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .value-display {
-            color: #4fc3f7;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div id="canvas-container"></div>
-    
-    <div id="info">
-        <h2 style="margin: 0 0 10px 0; color: #4fc3f7;">Return of Jewel Their</h2>
-        <div>3D Circle Packing with Parametric Diamonds</div>
-        <div style="margin-top: 10px; font-size: 12px; color: #888;">
-            Mouse: Rotate | Scroll: Zoom | Right-click: Pan
-        </div>
-    </div>
-    
-    <div id="controls">
-        <h3 style="margin: 0 0 15px 0; color: #4fc3f7;">Controls</h3>
-        
-        <div class="control-group">
-            <label>Diamond Count: <span id="count-value" class="value-display">20</span></label>
-            <input type="range" id="count" min="10" max="50" value="20" step="1">
-        </div>
-        
-        <div class="control-group">
-            <label>Min Radius: <span id="minRadius-value" class="value-display">0.5</span></label>
-            <input type="range" id="minRadius" min="0.3" max="2" value="0.5" step="0.1">
-        </div>
-        
-        <div class="control-group">
-            <label>Max Radius: <span id="maxRadius-value" class="value-display">3</span></label>
-            <input type="range" id="maxRadius" min="2" max="6" value="3" step="0.1">
-        </div>
-        
-        <div class="control-group">
-            <label>Diamond Height: <span id="height-value" class="value-display">2</span></label>
-            <input type="range" id="height" min="1" max="5" value="2" step="0.1">
-        </div>
-        
-        <div class="control-group">
-            <label>Rotation Speed: <span id="rotation-value" class="value-display">1</span></label>
-            <input type="range" id="rotation" min="0" max="5" value="1" step="0.1">
-        </div>
-        
-        <div style="margin-top: 15px;">
-            <button id="regenerate">Regenerate</button>
-            <button id="toggleWireframe">Toggle Wireframe</button>
-        </div>
-    </div>
-    
-    <!-- Use ES6 modules with import maps -->
-    <script type="importmap">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cubic Puzzle Box</title>
+  <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+        "three/": "https://cdn.jsdelivr.net/npm/three@0.160.0/",
         "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.0/build/index.module.js",
         "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.17/build/index.module.js"
       }
     }
-    </script>
-    
-    <!-- Main Script -->
-    <script type="module" src="jewel.js"></script>
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      overflow: hidden;
+      background: #2a2a2a;
+    }
+    #canvas { 
+      width: 100vw; 
+      height: 100vh; 
+      display: block; 
+    }
+    #controls {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 12px;
+      color: #fff;
+      max-width: 280px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    h1 { 
+      font-size: 20px; 
+      margin-bottom: 15px; 
+      color: #4fc3f7;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .info {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 15px;
+      line-height: 1.6;
+    }
+    .block-btn {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .action-btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas"></div>
+  <div id="controls">
+    <h1>🎨 Generative Sculpture</h1>
+    <button id="addBlock" class="block-btn">Regenerate</button>
+    <button id="reset" class="action-btn">New Seed</button>
+    <button id="toggleWireframe" class="action-btn">Toggle Wireframe</button>
+    <button id="rotatePuzzle" class="action-btn">Pause Rotation</button>
+    <hr style="margin: 15px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+    <button id="downloadLight" class="action-btn" style="background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%); color: #000;">💾 Light Pieces (.stl)</button>
+    <button id="downloadDark" class="action-btn" style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);">💾 Dark Pieces (.stl)</button>
+    <div class="info">
+      🎲 Each generation is unique<br>
+      🔄 Drag to rotate view<br>
+      🔍 Scroll to zoom<br>
+      ✨ Uses CSG boolean operations
+    </div>
+  </div>
+  <script type="module" src="sketch.js"></script>
 </body>
 </html>
-
