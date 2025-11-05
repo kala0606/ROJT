@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return of Jewel Their - ROJT</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            font-family: 'Courier New', monospace;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 14px;
+        }
+        
+        .control-group {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        
+        input[type="range"] {
+            width: 200px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .value-display {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="info">
+        <h2 style="margin: 0 0 10px 0; color: #4fc3f7;">Return of Jewel Their</h2>
+        <div>3D Circle Packing with Parametric Diamonds</div>
+        <div style="margin-top: 10px; font-size: 12px; color: #888;">
+            Mouse: Rotate | Scroll: Zoom | Right-click: Pan
+        </div>
+    </div>
+    
+    <div id="controls">
+        <h3 style="margin: 0 0 15px 0; color: #4fc3f7;">Controls</h3>
+        
+        <div class="control-group">
+            <label>Diamond Count: <span id="count-value" class="value-display">20</span></label>
+            <input type="range" id="count" min="10" max="50" value="20" step="1">
+        </div>
+        
+        <div class="control-group">
+            <label>Min Radius: <span id="minRadius-value" class="value-display">0.5</span></label>
+            <input type="range" id="minRadius" min="0.3" max="2" value="0.5" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Max Radius: <span id="maxRadius-value" class="value-display">3</span></label>
+            <input type="range" id="maxRadius" min="2" max="6" value="3" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Diamond Height: <span id="height-value" class="value-display">2</span></label>
+            <input type="range" id="height" min="1" max="5" value="2" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <label>Rotation Speed: <span id="rotation-value" class="value-display">1</span></label>
+            <input type="range" id="rotation" min="0" max="5" value="1" step="0.1">
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <button id="regenerate">Regenerate</button>
+            <button id="toggleWireframe">Toggle Wireframe</button>
+        </div>
+    </div>
+    
+    <!-- Use ES6 modules with import maps -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.0/build/index.module.js",
+        "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.17/build/index.module.js"
+      }
+    }
+    </script>
+    
+    <!-- Main Script -->
+    <script type="module" src="jewel.js"></script>
+</body>
+</html>
+
